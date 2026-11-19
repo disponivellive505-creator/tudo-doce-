@@ -765,6 +765,164 @@ body {
   box-shadow: 0 12px 24px rgba(100, 48, 52, 0.16);
 }
 
+/* Luxury Logo Medallion (crops white corners cleanly & adds subtle gold foil sheen) */
+@keyframes ktGoldSheen {
+  0%,
+  72% {
+    transform: translateX(-160%) rotate(25deg);
+    opacity: 0;
+  }
+  82% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateX(180%) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+@keyframes ktSealFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0px, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate3d(0, -8px, 0) rotate(2deg);
+  }
+}
+
+@keyframes ktOrbitSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.kt-logo-medallion {
+  position: relative;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #4e070c;
+  box-shadow:
+    0 6px 18px rgba(72, 16, 22, 0.34),
+    0 0 0 1.5px rgba(244, 198, 102, 0.55);
+  transition: transform 0.45s var(--out), box-shadow 0.45s var(--out);
+}
+
+.kt-logo-medallion img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.07);
+  display: block;
+}
+
+.kt-logo-medallion::after {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 246, 212, 0.65) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  width: 45%;
+  pointer-events: none;
+  animation: ktGoldSheen 5.5s ease-in-out infinite;
+}
+
+.kt-logo-medallion:hover {
+  transform: scale(1.06);
+  box-shadow:
+    0 10px 26px rgba(72, 16, 22, 0.42),
+    0 0 0 2px rgba(244, 198, 102, 0.85);
+}
+
+/* Quem Sou Eu section */
+.kt-about-section {
+  position: relative;
+  z-index: 15;
+  padding: 28px clamp(20px, 9.5vw, 170px) 104px;
+}
+
+.kt-about-grid {
+  display: grid;
+  grid-template-columns: 0.94fr 1.06fr;
+  gap: clamp(32px, 5vw, 84px);
+  align-items: center;
+}
+
+.kt-about-portrait-frame {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  aspect-ratio: 4 / 4.55;
+  background: #ead1cb;
+  box-shadow: 0 26px 64px rgba(100, 42, 48, 0.2);
+  clip-path: inset(100% 0 0 0 round 22px);
+  transition: clip-path 1.15s var(--out), box-shadow 0.5s var(--out);
+}
+
+.kt-about-portrait-frame.is-inview {
+  clip-path: inset(0% 0 0 0 round 22px);
+}
+
+.kt-about-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 16%;
+  transform: scale(1.12);
+  transition: transform 1.4s var(--out);
+}
+
+.kt-about-portrait-frame.is-inview .kt-about-portrait-img {
+  transform: scale(1);
+}
+
+.kt-about-seal-orbit {
+  position: absolute;
+  right: -26px;
+  bottom: -24px;
+  z-index: 10;
+  opacity: 0;
+  transform: scale(0.65) translateY(24px);
+  transition: opacity 0.9s var(--out) 0.38s, transform 1s var(--out) 0.38s;
+}
+
+.kt-about-seal-orbit.is-inview {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.kt-about-seal-float {
+  animation: ktSealFloat 5.2s ease-in-out infinite;
+}
+
+.kt-about-ring-dashed {
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  border: 1.5px dashed rgba(200, 146, 56, 0.55);
+  pointer-events: none;
+  animation: ktOrbitSpin 32s linear infinite;
+}
+
+.kt-about-reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.85s var(--out), transform 0.95s var(--out);
+}
+
+.kt-about-reveal.is-inview {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Responsive <= 1000px */
 @media (max-width: 1000px) {
   .kt-nav-center,
@@ -776,8 +934,14 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .kt-detail-grid {
+  .kt-detail-grid,
+  .kt-about-grid {
     grid-template-columns: 1fr;
+  }
+
+  .kt-about-seal-orbit {
+    right: 14px;
+    bottom: -20px;
   }
 }
 
@@ -833,5 +997,9 @@ body {
 
   .kt-stays-section {
     margin-top: -8vh;
+  }
+
+  .kt-about-section {
+    padding-bottom: 72px;
   }
 }

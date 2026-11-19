@@ -69,6 +69,10 @@ interface FlightRect {
 
 // Uploaded Christmas assets from /public/assets/aistudio/
 const ASSETS = {
+  logo: '/assets/aistudio/Logo_luxuoso_Tudo__Doce_f0449b04.png',
+  quemSouEu: '/assets/aistudio/quem_sou_eu_fdd23a5f.jpg',
+  commercialVideo:
+    '/assets/aistudio/Christmas_food_commercial_direction_934c4fa1_1080p_564ab9f3.mp4',
   chefHero: '/assets/aistudio/image_c1a8b5e7.png',
   chefVideo: '/assets/aistudio/Pastry_chef_presenting_Christmas__1f0e3849_1080p_81c001bf.mp4',
   cakeVideo: '/assets/aistudio/Chocolate_cake_animation_assembly_c9e87d42_1080p_39da515f.mp4',
@@ -105,6 +109,7 @@ const SLIDES: SlideItem[] = [
   {
     id: 2,
     photo: ASSETS.panettone,
+    video: ASSETS.commercialVideo,
     photoPos: 'center 48%',
     titleLines: [['SABORES'], ['DE NATAL']],
     isExploreLayout: true,
@@ -169,6 +174,7 @@ const PRODUCTS: ProductItem[] = [
     reviewsCount: 132,
     photo: ASSETS.roseCake,
     objectPos: '50% 48%',
+    video: ASSETS.commercialVideo,
     gallery: [ASSETS.chocoCake, ASSETS.taca, ASSETS.chefHero],
     description:
       'Camadas delicadas de massa de chocolate intenso com creme branco aveludado de baunilha e geleia artesanal de frutas vermelhas, arrematado com laço magenta em cetim e topo esculpido em flores de chocolate rubi.',
@@ -185,6 +191,7 @@ const PRODUCTS: ProductItem[] = [
     reviewsCount: 184,
     photo: ASSETS.panettone,
     objectPos: '49% 46%',
+    video: ASSETS.commercialVideo,
     gallery: [ASSETS.chocoCake, ASSETS.pudim, ASSETS.chefHero],
     description:
       'Fermentação natural lenta de 36 horas com gotas nobres e frutas cristalizadas macias, recheado generosamente com trufa cremosa de gianduia, cobertura escorrida de chocolate belga, avelãs tostadas e medalhão dourado Tudo+ Doce.',
@@ -201,6 +208,7 @@ const PRODUCTS: ProductItem[] = [
     reviewsCount: 119,
     photo: ASSETS.taca,
     objectPos: '51% 46%',
+    video: ASSETS.commercialVideo,
     gallery: [ASSETS.roseCake, ASSETS.pudim, ASSETS.chocoCake],
     description:
       'Servida em taça de cristal pronta para ir direto ao centro da mesa natalina: camadas fartas de creme de ninho cozido lentamente, cubos de brownie úmido, ganache brilhante, raspas de chocolate e morangos frescos.',
@@ -217,6 +225,7 @@ const PRODUCTS: ProductItem[] = [
     reviewsCount: 164,
     photo: ASSETS.pudim,
     objectPos: '48% 52%',
+    video: ASSETS.commercialVideo,
     gallery: [ASSETS.taca, ASSETS.panettone, ASSETS.chefHero],
     description:
       'Receita clássica de família com textura ultracremosa e lisinha, infusionada com favas naturais de baunilha de Madagascar e banhada em calda âmbar brilhante de caramelo artesanal.',
@@ -233,6 +242,7 @@ const PRODUCTS: ProductItem[] = [
     reviewsCount: 96,
     photo: ASSETS.panettone,
     objectPos: '80% 66%',
+    video: ASSETS.commercialVideo,
     gallery: [ASSETS.panettone, ASSETS.pudim, ASSETS.roseCake],
     description:
       'Kit encantador com dois mini panetones trufados de chocolate e avelãs tostadas, finalizados com forminhas natalinas vermelhas e laços de cetim prontos para presentear pessoas especiais.',
@@ -521,8 +531,11 @@ export default function App() {
   const [children, setChildren] = useState(2);
   const [guestsTouched, setGuestsTouched] = useState(false);
 
-  // Products section state
+  // Products & Quem Sou Eu states
   const [productsVisible, setProductsVisible] = useState(false);
+  const [aboutVisible, setAboutVisible] = useState(false);
+  const [filmModalOpen, setFilmModalOpen] = useState(false);
+  const [portraitTilt, setPortraitTilt] = useState({ rx: 0, ry: 0 });
   const [likedIds, setLikedIds] = useState<Record<string, boolean>>({});
   const [poppingId, setPoppingId] = useState<string | null>(null);
 
@@ -551,6 +564,7 @@ export default function App() {
   const railRef = useRef<HTMLDivElement>(null);
   const searchShellRef = useRef<HTMLDivElement>(null);
   const productsSectionRef = useRef<HTMLElement>(null);
+  const aboutSectionRef = useRef<HTMLElement>(null);
   const navRightRef = useRef<HTMLDivElement>(null);
   const navLeftRef = useRef<HTMLDivElement>(null);
 
@@ -906,6 +920,23 @@ export default function App() {
     return () => observer.disconnect();
   }, []);
 
+  // IntersectionObserver for "Quem Sou Eu" curtain & seal reveal
+  useEffect(() => {
+    const section = aboutSectionRef.current;
+    if (!section) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setAboutVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.16, rootMargin: '0px 0px -40px 0px' }
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
   // Outside click closes search popovers and nav dropdowns
   useEffect(() => {
     const handleOutside = (e: MouseEvent) => {
@@ -949,14 +980,15 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (customOrderModalOpen) setCustomOrderModalOpen(false);
+        if (filmModalOpen) setFilmModalOpen(false);
+        else if (customOrderModalOpen) setCustomOrderModalOpen(false);
         else if (openPopover) setOpenPopover(null);
         else if (detailProductRef.current) closeDetail();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [customOrderModalOpen, openPopover, closeDetail]);
+  }, [filmModalOpen, customOrderModalOpen, openPopover, closeDetail]);
 
   // Right rail geometry math (exact wireframe match)
   const railLayout = useMemo(() => {
@@ -1124,6 +1156,19 @@ export default function App() {
     }
   };
 
+  const scrollToAbout = () => {
+    setOpenPopover(null);
+    setNavMenuOpen(false);
+    if (detailProduct) {
+      closeDetail();
+      window.setTimeout(() => {
+        aboutSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 580);
+    } else {
+      aboutSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const handlePanettoneSpotlight = () => {
     if (detailProduct) {
       closeDetail();
@@ -1201,19 +1246,22 @@ export default function App() {
 
       {/* Fixed Navigation Bar */}
       <header className={`kt-nav ${navIsSolid ? 'is-solid' : ''}`}>
-        {/* Left side: Logo | 1x42 divider | Natal 2026 chevron */}
+        {/* Left side: Luxury Medallion Logo + Wordmark | 1x42 divider | Natal 2026 chevron */}
         <div ref={navLeftRef} className="relative flex items-center">
           <button
             type="button"
             onClick={handleGoHome}
-            className="whitespace-nowrap text-[26px] font-light tracking-[-0.015em] leading-none"
+            className="group flex items-center gap-3 whitespace-nowrap leading-none"
           >
-            Tudo+ Doce
+            <span className="kt-logo-medallion h-[42px] w-[42px]">
+              <img src={ASSETS.logo} alt="Logo Tudo+ Doce" draggable={false} />
+            </span>
+            <span className="text-[24px] font-light tracking-[-0.015em]">Tudo+ Doce</span>
           </button>
 
           <span
             aria-hidden="true"
-            className="kt-nav-divider mx-[28px] block h-[42px] w-[1px] bg-current opacity-45"
+            className="kt-nav-divider mx-[24px] block h-[42px] w-[1px] bg-current opacity-45"
           />
 
           <button
@@ -1230,7 +1278,7 @@ export default function App() {
           </button>
 
           {editionMenuOpen && (
-            <div className="kt-popover absolute left-[155px] top-[56px] w-[210px] rounded-[14px] bg-white p-2 text-[#24171a] shadow-[0_18px_48px_rgba(68,26,32,0.18)]">
+            <div className="kt-popover absolute left-[195px] top-[56px] w-[215px] rounded-[14px] bg-white p-2 text-[#24171a] shadow-[0_18px_48px_rgba(68,26,32,0.18)]">
               <button
                 type="button"
                 onClick={() => {
@@ -1241,6 +1289,16 @@ export default function App() {
               >
                 <span>Cardápio de Natal</span>
                 <Check size={14} className="text-[#c8233c]" />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditionMenuOpen(false);
+                  scrollToAbout();
+                }}
+                className="flex w-full items-center justify-between rounded-[10px] px-3 py-2 text-left text-[13px] text-[#634a50] hover:bg-[#fdf4f1]"
+              >
+                <span>Quem Sou Eu</span>
               </button>
               <button
                 type="button"
@@ -1261,8 +1319,8 @@ export default function App() {
           <button type="button" onClick={scrollToProducts} className="kt-nav-link">
             Cardápio
           </button>
-          <button type="button" onClick={handlePanettoneSpotlight} className="kt-nav-link">
-            Panetones
+          <button type="button" onClick={scrollToAbout} className="kt-nav-link">
+            Quem Sou Eu
           </button>
           <button
             type="button"
@@ -2002,13 +2060,205 @@ export default function App() {
         </div>
       </section>
 
-      {/* Quiet minimal footer */}
+      {/* "Quem Sou Eu" — Animated Editorial Section with Portrait Curtain Reveal, 3D Tilt & Floating Luxury Logo */}
+      <section ref={aboutSectionRef} id="quem-sou-eu" className="kt-about-section">
+        <div className="kt-about-grid">
+          {/* Left: Studio Portrait with Vertical Curtain Wipe, 3D Pointer Tilt & Orbiting Gold Medallion */}
+          <div className="relative mx-auto w-full max-w-[490px]">
+            {/* Concentric golden rings echoing the hero rail motif */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -left-8 -top-8 h-[170px] w-[170px] rounded-full border border-[#c89238]/28 transition-all duration-1000"
+              style={{
+                opacity: aboutVisible ? 1 : 0,
+                transform: aboutVisible ? 'scale(1)' : 'scale(0.75)',
+              }}
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -left-14 -top-14 h-[220px] w-[220px] rounded-full border border-[#c8233c]/14 transition-all duration-1000"
+              style={{
+                opacity: aboutVisible ? 1 : 0,
+                transform: aboutVisible ? 'scale(1)' : 'scale(0.75)',
+                transitionDelay: '120ms',
+              }}
+            />
+
+            <div
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const nx = (e.clientX - rect.left) / rect.width - 0.5;
+                const ny = (e.clientY - rect.top) / rect.height - 0.5;
+                setPortraitTilt({ rx: -ny * 7, ry: nx * 7 });
+              }}
+              onMouseLeave={() => setPortraitTilt({ rx: 0, ry: 0 })}
+              style={{
+                perspective: '1000px',
+              }}
+            >
+              <div
+                className={`kt-about-portrait-frame ${aboutVisible ? 'is-inview' : ''}`}
+                style={{
+                  transform: `rotateX(${portraitTilt.rx.toFixed(2)}deg) rotateY(${portraitTilt.ry.toFixed(2)}deg)`,
+                  transition:
+                    portraitTilt.rx === 0 && portraitTilt.ry === 0
+                      ? 'clip-path 1.15s var(--out), transform 0.65s var(--out)'
+                      : 'clip-path 1.15s var(--out), transform 0.14s linear',
+                }}
+              >
+                <img
+                  src={ASSETS.quemSouEu}
+                  alt="Confeiteira fundadora da Tudo+ Doce"
+                  className="kt-about-portrait-img"
+                  draggable={false}
+                />
+                {/* Soft blush bottom gradient grounding the studio portrait into the warm page */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-[34%]"
+                  style={{
+                    background:
+                      'linear-gradient(180deg, rgba(246,216,210,0) 0%, rgba(76,20,30,0.42) 100%)',
+                  }}
+                />
+                <div className="pointer-events-none absolute bottom-5 left-6 text-white">
+                  <div className="text-[11.5px] font-medium uppercase tracking-[0.14em] text-white/85">
+                    Chef Confeiteira · Fundadora
+                  </div>
+                  <div className="font-serif-display mt-0.5 text-[22px] leading-tight">
+                    Ateliê Tudo+ Doce
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Floating Luxury Gold Medallion Seal with rotating dashed golden halo */}
+            <div className={`kt-about-seal-orbit ${aboutVisible ? 'is-inview' : ''}`}>
+              <div className="kt-about-seal-float relative">
+                <span aria-hidden="true" className="kt-about-ring-dashed" />
+                <div className="kt-logo-medallion h-[108px] w-[108px] max-[640px]:h-[86px] max-[640px]:w-[86px]">
+                  <img
+                    src={ASSETS.logo}
+                    alt="Selo Luxuoso Tudo+ Doce"
+                    draggable={false}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Editorial Story + Interactive Christmas Commercial Film Preview */}
+          <div className="flex flex-col">
+            <div
+              className={`kt-about-reveal flex items-center gap-3 text-[12.5px] font-semibold uppercase tracking-[0.14em] text-[#c8233c] ${
+                aboutVisible ? 'is-inview' : ''
+              }`}
+              style={{ transitionDelay: '80ms' }}
+            >
+              <span className="h-[1.5px] w-8 bg-[#c8233c]" />
+              <span>Quem Sou Eu</span>
+            </div>
+
+            <h2
+              className={`kt-about-reveal font-serif-display mt-3 font-normal leading-[1.12] text-[#24171a] ${
+                aboutVisible ? 'is-inview' : ''
+              }`}
+              style={{
+                fontSize: 'clamp(30px, 3vw, 44px)',
+                transitionDelay: '160ms',
+              }}
+            >
+              A alma doce por trás de cada receita do seu Natal
+            </h2>
+
+            <p
+              className={`kt-about-reveal mt-5 text-[15.5px] leading-[1.72] text-[#634a50] ${
+                aboutVisible ? 'is-inview' : ''
+              }`}
+              style={{ transitionDelay: '240ms' }}
+            >
+              A <strong className="font-semibold text-[#24171a]">Tudo+ Doce</strong> nasceu do meu
+              amor por transformar receitas afetivas em lembranças inesquecíveis à mesa. Cada bolo
+              festivo, panetone trufado e pudim de baunilha é preparado pessoalmente no meu ateliê —
+              do ponto exato da ganache belga até o laço de cetim amarrado à mão antes de chegar à
+              sua ceia.
+            </p>
+
+            {/* Clean unboxed editorial metadata */}
+            <div
+              className={`kt-about-reveal mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-[#24171a]/10 py-4 text-[13.5px] font-medium text-[#24171a] ${
+                aboutVisible ? 'is-inview' : ''
+              }`}
+              style={{ transitionDelay: '320ms' }}
+            >
+              <span>100% Artesanal</span>
+              <span aria-hidden="true" className="text-[#c8233c]">
+                ·
+              </span>
+              <span>Chocolate Belga Nobre</span>
+              <span aria-hidden="true" className="text-[#c8233c]">
+                ·
+              </span>
+              <span>Produção Limitada de Natal</span>
+            </div>
+
+            {/* Interactive Commercial Film Card */}
+            <div
+              className={`kt-about-reveal mt-7 ${aboutVisible ? 'is-inview' : ''}`}
+              style={{ transitionDelay: '400ms' }}
+            >
+              <button
+                type="button"
+                data-clickable="true"
+                onClick={() => setFilmModalOpen(true)}
+                className="group relative block w-full overflow-hidden rounded-[16px] bg-[#24171a] text-left shadow-[0_18px_46px_rgba(88,28,36,0.22)] transition-transform duration-500 hover:-translate-y-1"
+                style={{ aspectRatio: '16 / 8.2' }}
+              >
+                <video
+                  src={ASSETS.commercialVideo}
+                  poster={ASSETS.panettone}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                />
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{
+                    background:
+                      'linear-gradient(90deg, rgba(36,16,20,0.78) 0%, rgba(36,16,20,0.28) 55%, rgba(36,16,20,0.12) 100%)',
+                  }}
+                />
+                <div className="absolute inset-0 flex items-center justify-between px-6">
+                  <div className="max-w-[65%] text-white">
+                    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#f5cf86]">
+                      Bastidores & Campanha
+                    </div>
+                    <div className="font-serif-display mt-1 text-[21px] leading-snug max-[640px]:text-[17px]">
+                      Assista ao Filme de Natal Tudo+ Doce
+                    </div>
+                  </div>
+                  <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full border border-white/50 bg-white/20 text-white backdrop-blur-md transition-all duration-300 group-hover:scale-110 group-hover:bg-[#c8233c] group-hover:border-[#c8233c]">
+                    <Play size={20} fill="currentColor" className="translate-x-[1px]" />
+                  </span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quiet minimal footer with Luxury Medallion Logo */}
       <footer
         id="kt-contact"
         className="border-t border-[#24171a]/8 px-[clamp(20px,9.5vw,170px)] py-10 text-[13px] text-[#634a50]"
       >
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3.5">
+            <span className="kt-logo-medallion h-[38px] w-[38px]">
+              <img src={ASSETS.logo} alt="Tudo+ Doce" draggable={false} />
+            </span>
             <span className="text-[20px] font-light text-[#24171a]">Tudo+ Doce</span>
             <span className="opacity-50">·</span>
             <span>Ateliê de Confeitaria Artesanal · Edição de Natal</span>
@@ -2209,15 +2459,18 @@ export default function App() {
                   >
                     {detailProduct.name}
                   </h1>
-                  <div className="mt-3 flex items-center gap-2 text-[13.5px] text-[#634a50]">
+                  <div className="mt-3 flex items-center gap-2.5 text-[13.5px] text-[#634a50]">
                     <span>Feito à mão por</span>
                     <img
-                      src={ASSETS.chefHero}
+                      src={ASSETS.quemSouEu}
                       alt="Chef Tudo+ Doce"
-                      className="h-[22px] w-[22px] rounded-full object-cover"
+                      className="h-[24px] w-[24px] rounded-full object-cover ring-1 ring-[#c89238]/50"
                       style={{ objectPosition: '50% 18%' }}
                     />
                     <span className="font-semibold text-[#24171a]">Confeitaria Tudo+ Doce</span>
+                    <span className="kt-logo-medallion h-[22px] w-[22px]">
+                      <img src={ASSETS.logo} alt="Selo Tudo+ Doce" draggable={false} />
+                    </span>
                   </div>
                 </div>
 
@@ -2476,6 +2729,48 @@ export default function App() {
         </div>
       )}
 
+      {/* Fullscreen Christmas Commercial Film Modal */}
+      {filmModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Filme de Natal Tudo+ Doce"
+          onClick={() => setFilmModalOpen(false)}
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-[#180c0f]/86 p-5 backdrop-blur-md"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="kt-popover relative w-full max-w-[960px] overflow-hidden rounded-[22px] bg-[#180c0f] shadow-[0_32px_90px_rgba(0,0,0,0.65)] ring-1 ring-[#f4c666]/35"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-3.5 text-white">
+              <div className="flex items-center gap-3">
+                <span className="kt-logo-medallion h-[32px] w-[32px]">
+                  <img src={ASSETS.logo} alt="Tudo+ Doce" draggable={false} />
+                </span>
+                <span className="font-serif-display text-[18px]">
+                  Campanha Especial de Natal — Tudo+ Doce
+                </span>
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar vídeo"
+                onClick={() => setFilmModalOpen(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/15 hover:text-white"
+              >
+                <X size={19} strokeWidth={1.8} />
+              </button>
+            </div>
+            <video
+              src={ASSETS.commercialVideo}
+              controls
+              autoPlay
+              playsInline
+              className="aspect-video w-full bg-black object-cover"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Kit Corporativo / Encomenda Sob Medida modal */}
       {customOrderModalOpen && (
         <div
@@ -2490,14 +2785,18 @@ export default function App() {
             className="kt-popover w-full max-w-[440px] rounded-[22px] bg-white p-7 text-[#24171a] shadow-[0_28px_70px_rgba(48,18,24,0.28)]"
           >
             <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="font-serif-display text-[26px] leading-tight">
-                  Kits de Natal Sob Medida
-                </h2>
-                <p className="mt-1.5 text-[14px] leading-relaxed text-[#634a50]">
-                  Monte presentes personalizados com panetones trufados, mini bolos e cartão
-                  exclusivo da Tudo+ Doce para sua equipe ou família.
-                </p>
+              <div className="flex items-center gap-3.5">
+                <span className="kt-logo-medallion h-[46px] w-[46px]">
+                  <img src={ASSETS.logo} alt="Tudo+ Doce" draggable={false} />
+                </span>
+                <div>
+                  <h2 className="font-serif-display text-[24px] leading-tight">
+                    Kits de Natal Sob Medida
+                  </h2>
+                  <p className="mt-0.5 text-[13px] text-[#634a50]">
+                    Ateliê Tudo+ Doce · Natal 2026
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
@@ -2508,6 +2807,10 @@ export default function App() {
                 <X size={18} strokeWidth={1.7} />
               </button>
             </div>
+            <p className="mt-3 text-[14px] leading-relaxed text-[#634a50]">
+              Monte presentes personalizados com panetones trufados, mini bolos e cartão exclusivo
+              da Tudo+ Doce para sua equipe ou família.
+            </p>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
